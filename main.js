@@ -49,12 +49,31 @@ async function showForecast(url) {
                     <li>Bewölkungsgrad (%): ${details.cloud_area_fraction}</li>
                     <li>Luftfeuchtigkeit (%): ${details.relative_humidity}</li>
                     <li>Windrichtung (°): ${details.wind_from_direction}</li>
-                    <li>Windgeschwindigkeit (km/h): ${details.wind_speed * 3.6}</li>
+                    <li>Windgeschwindigkeit (km/h): ${Math.round(details.wind_speed * 3.6)}</li>
                 </ul>
-            `
+            `;
+            for (let i = 0; i <= 24; i += 3) {
+                let symbol = feature.properties.timeseries[i].data.next_1_hours.summary.symbol_code;
+                let time = new Date(feature.properties.timeseries[i].time).toLocaleTimeString();
+                content += `
+                        <img src="icons/${symbol}.svg" alt="${symbol}" title="${time}" height="23px">
+                `
+            }
+
+            content += `
+                <p><a href="${url}" target="met.no">Daten downloaden</p>
+            `;
+
             return L.popup(latlng, { content: content })
                 .openOn(themaLayer.forecast);
         }
     }).addTo(themaLayer.forecast);
 }
 showForecast("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=47.267222&lon=11.392778");
+
+
+map.on("click", function (event) {
+    console.log("click", event.latlng);
+    let url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${event.latlng.lat}&lon=${event.latlng.lng}`;
+    showForecast(url);
+});
